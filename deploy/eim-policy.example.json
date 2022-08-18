@@ -27,6 +27,8 @@
         "elasticloadbalancing:SetLoadBalancerPoliciesForBackendServer",
         "elasticloadbalancing:SetLoadBalancerPoliciesOfListener",
         "elasticloadbalancing:DescribeLoadBalancerPolicies",
+        "elasticloadbalancing:CreateLBCookieStickinessPolicy",
+        "elasticloadbalancing:DeleteLoadBalancerPolicy",
         "elasticloadbalancing:DetachLoadBalancerFromSubnets",
         "elasticloadbalancing:AttachLoadBalancerToSubnets",
         "elasticloadbalancing:CreateLoadBalancerListeners",

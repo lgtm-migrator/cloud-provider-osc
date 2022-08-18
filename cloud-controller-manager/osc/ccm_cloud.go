@@ -1395,6 +1395,21 @@ func (c *Cloud) EnsureLoadBalancer(ctx context.Context, clusterName string, apiS
 		}
 	}
 
+	annotationAffinity := strings.ToLower(annotations[ServiceAnnotationLoadBalancerAffinity])
+	if annotationAffinity == "" {
+		err := c.ensureNoLoadBalancerLBCookieStickinessPolicy(loadBalancer)
+		if err != nil {
+			return nil, fmt.Errorf("failed to ensure no load balancer cookie stickiness policy: %q", err)
+		}
+	} else if annotationAffinity == "lb-cookie" {
+		annotationCookieExpirationPeriod := strings.ToLower(annotations[ServiceAnnotationLoadBalancerLBCookieExpirationPeriod])
+		if err := c.ensureLoadBalancerLBCookieStickinessPolicy(loadBalancer, annotationCookieExpirationPeriod); err != nil {
+			return nil, fmt.Errorf("failed to setup load balancer cookie stickiness policy: %q", err)
+		}
+	} else {
+		return nil, fmt.Errorf("invalid value for ServiceAnnotationLoadBalancerAffinity: %s", annotationAffinity)
+	}
+
 	err = c.updateInstanceSecurityGroupsForLoadBalancer(loadBalancer, instances, securityGroupIDs)
 	if err != nil {
 		klog.Warningf("Error opening ingress rules for the load balancer to the instances: %q", err)

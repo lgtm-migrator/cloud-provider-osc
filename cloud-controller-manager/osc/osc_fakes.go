@@ -364,22 +364,22 @@ type FakeMetadata struct {
 	aws *FakeOscServices
 }
 
-//GetInstanceID is a fake metadata for testing
+// GetInstanceID is a fake metadata for testing
 func (m *FakeMetadata) GetInstanceID() string {
 	return ""
 }
 
-//GetInstanceType is a fake metadata for testing
+// GetInstanceType is a fake metadata for testing
 func (m *FakeMetadata) GetInstanceType() string {
 	return ""
 }
 
-//GetRegion is a fake metadata for testing
+// GetRegion is a fake metadata for testing
 func (m *FakeMetadata) GetRegion() string {
 	return ""
 }
 
-//GetAvailabilityZone is a fake metadata for testing
+// GetAvailabilityZone is a fake metadata for testing
 func (m *FakeMetadata) GetAvailabilityZone() string {
 	return ""
 }
@@ -539,6 +539,18 @@ func (elb *FakeELB) SetLoadBalancerPoliciesOfListener(input *elb.SetLoadBalancer
 // DescribeLoadBalancerPolicies is not implemented but is required for
 // interface conformance
 func (elb *FakeELB) DescribeLoadBalancerPolicies(input *elb.DescribeLoadBalancerPoliciesInput) (*elb.DescribeLoadBalancerPoliciesOutput, error) {
+	panic("Not implemented")
+}
+
+// CreateLBCookieStickinessPolicy is not implemented but is required for
+// interface conformance
+func (elb *FakeELB) CreateLBCookieStickinessPolicy(input *elb.CreateLBCookieStickinessPolicyInput) (*elb.CreateLBCookieStickinessPolicyOutput, error) {
+	panic("Not implemented")
+}
+
+// DeleteLoadBalancerPolicy is not implemented but is required for
+// interface conformance
+func (elb *FakeELB) DeleteLoadBalancerPolicy(input *elb.DeleteLoadBalancerPolicyInput) (*elb.DeleteLoadBalancerPolicyOutput, error) {
 	panic("Not implemented")
 }
 

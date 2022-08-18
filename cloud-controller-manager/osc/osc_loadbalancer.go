@@ -347,7 +347,8 @@ func (c *Cloud) ensureLoadBalancer(namespacedName types.NamespacedName, loadBala
 
 // syncElbListeners computes a plan to reconcile the desired vs actual state of the listeners on an ELB
 // NOTE: there exists an O(nlgn) implementation for this function. However, as the default limit of
-//       listeners per elb is 100, this implementation is reduced from O(m*n) => O(n).
+//
+//	listeners per elb is 100, this implementation is reduced from O(m*n) => O(n).
 func syncElbListeners(loadBalancerName string, listeners []*elb.Listener, listenerDescriptions []*elb.ListenerDescription) ([]*elb.Listener, []*int64, []*int64) {
 	debugPrintCallerFunctionName()
 	klog.V(10).Infof("syncElbListeners(%v,%v,%v)", loadBalancerName, listeners, listenerDescriptions)
@@ -510,6 +511,72 @@ func (c *Cloud) ensureLoadBalancerHealthCheck(loadBalancer *elb.LoadBalancerDesc
 	}
 
 	return nil
+}
+
+func (c *Cloud) ensureLoadBalancerLBCookieStickinessPolicy(loadBalancer *elb.LoadBalancerDescription, periodAnnotation string) error {
+	// Default expiration is the special value 1 which means no expiration.
+	// https://docs.outscale.com/lbu#createlbcookiestickinesspolicy
+	var period int64 = 1
+	if len(periodAnnotation) > 0 {
+		parsedPeriod, err := strconv.ParseInt(periodAnnotation, 10, 64)
+		if err != nil {
+			return fmt.Errorf("failed to parse osc-load-balancer-cookie-expiration-period annotation as integer")
+		}
+		if parsedPeriod < 1 {
+			return fmt.Errorf("invalid value for osc-load-balancer-cookie-expiration-period annotation: must be >= 1")
+		}
+		period = parsedPeriod
+	}
+
+	// Check for existing policy
+	var policy *elb.LBCookieStickinessPolicy = nil
+	for _, pol := range loadBalancer.Policies.LBCookieStickinessPolicies {
+		if *pol.PolicyName == LoadBalancerLBCookiePolicyName {
+			policy = pol
+			break
+		}
+	}
+	// Check for cookie expiration period
+	if policy != nil {
+		if *policy.CookieExpirationPeriod == period {
+			return nil
+		} else {
+			// Delete existing policy to re-create it with the correct expiration value
+			if err := c.ensureNoLoadBalancerLBCookieStickinessPolicy(loadBalancer); err != nil {
+				return fmt.Errorf("failed to update existing LB Cookie Strickiness Policy with new expiration date: %q", err)
+			}
+		}
+	}
+
+	klog.V(2).Infof("Creating LB Cookie Stickiness Policy on load balancer")
+	policyName := LoadBalancerLBCookiePolicyName
+	_, err := c.loadBalancer.CreateLBCookieStickinessPolicy(&elb.CreateLBCookieStickinessPolicyInput{
+		LoadBalancerName:       loadBalancer.LoadBalancerName,
+		PolicyName:             &policyName,
+		CookieExpirationPeriod: &period,
+	})
+	return err
+}
+
+func (c *Cloud) ensureNoLoadBalancerLBCookieStickinessPolicy(loadBalancer *elb.LoadBalancerDescription) error {
+	policyFound := false
+	for _, policy := range loadBalancer.Policies.LBCookieStickinessPolicies {
+		if *policy.PolicyName == LoadBalancerLBCookiePolicyName {
+			policyFound = true
+			break
+		}
+	}
+	if !policyFound {
+		return nil
+	}
+
+	klog.V(2).Infof("Deleting LB Cookie Stickiness Policy on load balancer")
+	policyName := LoadBalancerLBCookiePolicyName
+	_, err := c.loadBalancer.DeleteLoadBalancerPolicy(&elb.DeleteLoadBalancerPolicyInput{
+		LoadBalancerName: loadBalancer.LoadBalancerName,
+		PolicyName:       &policyName,
+	})
+	return err
 }
 
 // Makes sure that exactly the specified hosts are registered as instances with the load balancer

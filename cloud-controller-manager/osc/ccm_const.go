@@ -122,7 +122,9 @@ const ServiceAnnotationLoadBalancerSSLNegotiationPolicy = "service.beta.kubernet
 // ServiceAnnotationLoadBalancerBEProtocol is the annotation used on the service
 // to specify the protocol spoken by the backend (pod) behind a listener.
 // If `http` (default) or `https`, an HTTPS listener that terminates the
-//  connection and parses headers is created.
+//
+//	connection and parses headers is created.
+//
 // If set to `ssl` or `tcp`, a "raw" SSL listener is used.
 // If set to `http` and `aws-load-balancer-ssl-cert` is not used then
 // a HTTP listener is used.
@@ -160,6 +162,24 @@ const ServiceAnnotationLoadBalancerNameLength = "service.beta.kubernetes.io/osc-
 // ServiceAnnotationLoadBalancerName is the annotation used on the
 // service to specify, the load balancer name max length is 32 else it will be truncated.
 const ServiceAnnotationLoadBalancerName = "service.beta.kubernetes.io/osc-load-balancer-name"
+
+// ServiceAnnotationLoadBalancerAffinity is the annotation used on the service to specify the
+// type of session affinity to apply. The only possible value is "lb-cookie".
+//
+// Setting this value to "lb-cookie" is meant for browser usage (http/https), more details on
+// https://docs.outscale.com/en/userguide/Configuring-Sticky-Sessions-for-Your-Load-Balancers.html.
+// When set to "cookie", an automatic LBCookieStickinessPolicy is created.
+// To set an expiration period on this cookie, see osc-load-balancer-cookie-expiration-period annotation.
+const ServiceAnnotationLoadBalancerAffinity = "service.beta.kubernetes.io/osc-load-balancer-affinity"
+
+// LoadBalancerLBCookiePolicyName is the default policy name when using osc-load-balancer-affinity
+const LoadBalancerLBCookiePolicyName = "lb-cookie-policy"
+
+// ServiceAnnotationLoadBalancerCookieExpirationPeriod is the annotation used on the service to specify
+// the experiation period of the session when osc-load-balancer-affinity annotation is set to "lb-cookie".
+// When not set or set to 1, the cookie will not expire.
+// When set to a value above 1, the provided value is the expiration period in seconds.
+const ServiceAnnotationLoadBalancerLBCookieExpirationPeriod = "service.beta.kubernetes.io/osc-load-balancer-lb-cookie-expiration-period"
 
 // LbNameMaxLength the load balancer name max length value.
 const LbNameMaxLength = int64(32)

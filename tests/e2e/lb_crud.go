@@ -19,7 +19,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/outscale-dev/cloud-provider-osc/tests/e2e/utils"
+	e2eutils "github.com/outscale-dev/cloud-provider-osc/tests/e2e/utils"
 
 	elbApi "github.com/aws/aws-sdk-go/service/elb"
 	"github.com/onsi/ginkgo"
@@ -74,6 +74,14 @@ var _ = ginkgo.Describe("[ccm-e2e] SVC-LB", func() {
 				"service.beta.kubernetes.io/aws-load-balancer-healthcheck-unhealthy-threshold": "7",
 				"service.beta.kubernetes.io/aws-load-balancer-healthcheck-timeout":             "6",
 				"service.beta.kubernetes.io/aws-load-balancer-healthcheck-interval":            "11",
+			},
+		},
+		{
+			Title: "Create LB with LB sticky cookie",
+			Cmd:   "",
+			Annotations: map[string]string{
+				"service.beta.kubernetes.io/osc-load-balancer-affinity":                    "lb-cookie",
+				"service.beta.kubernetes.io/osc-load-balancer-lb-cookie-expiration-period": "10",
 			},
 		},
 	}
